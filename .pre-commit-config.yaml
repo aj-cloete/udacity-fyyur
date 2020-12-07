@@ -1,0 +1,39 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v3.3.0
+  hooks:
+    - id: check-byte-order-marker
+    - id: check-added-large-files
+      exclude: 'static'
+    - id: check-merge-conflict
+    - id: detect-aws-credentials
+      args: ['--allow-missing-credentials']
+    - id: detect-private-key
+    - id: end-of-file-fixer
+      exclude: 'setup.cfg'
+    - id: trailing-whitespace
+      exclude: 'setup.cfg'
+
+- repo: https://github.com/asottile/pyupgrade
+  rev: v2.7.4
+  hooks:
+    - id: pyupgrade
+      args: ["--py36-plus"]
+
+- repo: https://github.com/timothycrosley/isort
+  rev: master
+  hooks:
+    - id: isort
+
+- repo: https://github.com/psf/black
+  rev: 20.8b1
+  hooks:
+  - id: black
+    exclude: ^migrations/
+
+- repo: https://gitlab.com/pycqa/flake8
+  rev: master
+  hooks:
+  - id: flake8
+
+default_stages: [commit]

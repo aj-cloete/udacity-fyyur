@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+python-dateutil = "==2.6.0"
+flask-wtf = "*"
+Babel = "*"
+Flask-Moment = "*"
+
+[dev-packages]
+pre-commit = "*"
+
+[requires]
+python_version = "3.8"
