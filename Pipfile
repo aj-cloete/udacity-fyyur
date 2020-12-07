@@ -12,6 +12,7 @@ flask-wtf = "*"
 python-dateutil = "==2.6.0"
 pytz = "*"
 sqlalchemy = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 pre-commit = "*"
