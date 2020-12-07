@@ -8,7 +8,9 @@ from logging import FileHandler, Formatter
 import babel
 import dateutil.parser
 from flask import Flask, Response, flash, redirect, render_template, request, url_for
+from flask_migrate import Migrate, MigrateCommand
 from flask_moment import Moment
+from flask_script import Manager
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import Form
 
@@ -23,7 +25,10 @@ moment = Moment(app)
 app.config.from_object("config")
 db = SQLAlchemy(app)
 
-# TODO: connect to a local postgresql database
+# Migrations
+migrate = Migrate(app, db)
+manager = Manager(app)
+manager.add_command("db", MigrateCommand)
 
 # ----------------------------------------------------------------------------#
 # Models.
@@ -588,7 +593,7 @@ if not app.debug:
 
 # Default port:
 if __name__ == "__main__":
-    app.run()
+    manager.run()
 
 # Or specify port manually:
 """
