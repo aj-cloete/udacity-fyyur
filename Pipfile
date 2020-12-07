@@ -4,13 +4,18 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-python-dateutil = "==2.6.0"
-flask-wtf = "*"
 Babel = "*"
+flask-marshmallow = "*"
+flask-sqlalchemy = "*"
 Flask-Moment = "*"
+flask-wtf = "*"
+python-dateutil = "==2.6.0"
+pytz = "*"
+sqlalchemy = "*"
 
 [dev-packages]
 pre-commit = "*"
+python-dotenv = "*"
 
 [requires]
 python_version = "3.8"
