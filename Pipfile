@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 Babel = "*"
+flask = "*"
 flask-marshmallow = "*"
 flask-script = "*"
 flask-sqlalchemy = "*"
