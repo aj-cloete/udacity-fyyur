@@ -1,3 +1,4 @@
 .PHONY: db
 db:
-	@-docker-compose up postgres
+	@-docker-compose down
+	docker-compose up postgres
