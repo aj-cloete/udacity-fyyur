@@ -9,5 +9,6 @@ DEBUG = True
 
 # Connect to the database
 
-SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///:memory:")
+# SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///:memory:")
+SQLALCHEMY_DATABASE_URI = "postgresql://fyyurapp:fyyurpassword@localhost:5432/fyyur"
 SQLALCHEMY_TRACK_MODIFICATIONS = True
