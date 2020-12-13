@@ -1,8 +1,8 @@
-"""add show table
+"""update models
 
-Revision ID: fefb5c64245f
+Revision ID: deb6e2bfcb84
 Revises: 7f9d2d00a544
-Create Date: 2020-12-10 00:17:52.020624
+Create Date: 2020-12-14 00:31:30.592436
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'fefb5c64245f'
+revision = 'deb6e2bfcb84'
 down_revision = '7f9d2d00a544'
 branch_labels = None
 depends_on = None
@@ -22,11 +22,19 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=True),
     sa.Column('venue_id', sa.Integer(), nullable=True),
+    sa.Column('artist_id', sa.Integer(), nullable=True),
     sa.Column('start_time', sa.TIMESTAMP(), nullable=True),
+    sa.ForeignKeyConstraint(['artist_id'], ['artist.id'], ),
     sa.ForeignKeyConstraint(['venue_id'], ['venue.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('venue_id', 'artist_id', 'start_time', name='uniq_venue_artist_time')
     )
-    op.drop_table('artist')
+    op.add_column('artist', sa.Column('seeking_description', sa.String(length=500), nullable=True))
+    op.add_column('artist', sa.Column('seeking_venue', sa.BOOLEAN(), nullable=True))
+    op.add_column('artist', sa.Column('website', sa.String(length=500), nullable=True))
+    op.alter_column('artist', 'name',
+               existing_type=sa.VARCHAR(),
+               nullable=False)
     op.add_column('venue', sa.Column('genres', sa.ARRAY(sa.String()), nullable=True))
     op.add_column('venue', sa.Column('seeking_description', sa.String(length=500), nullable=True))
     op.add_column('venue', sa.Column('seeking_talent', sa.BOOLEAN(), nullable=True))
@@ -40,16 +48,11 @@ def downgrade():
     op.drop_column('venue', 'seeking_talent')
     op.drop_column('venue', 'seeking_description')
     op.drop_column('venue', 'genres')
-    op.create_table('artist',
-    sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
-    sa.Column('name', sa.VARCHAR(), autoincrement=False, nullable=True),
-    sa.Column('city', sa.VARCHAR(length=120), autoincrement=False, nullable=True),
-    sa.Column('state', sa.VARCHAR(length=120), autoincrement=False, nullable=True),
-    sa.Column('phone', sa.VARCHAR(length=120), autoincrement=False, nullable=True),
-    sa.Column('genres', sa.VARCHAR(length=120), autoincrement=False, nullable=True),
-    sa.Column('image_link', sa.VARCHAR(length=500), autoincrement=False, nullable=True),
-    sa.Column('facebook_link', sa.VARCHAR(length=120), autoincrement=False, nullable=True),
-    sa.PrimaryKeyConstraint('id', name='artist_pkey')
-    )
+    op.alter_column('artist', 'name',
+               existing_type=sa.VARCHAR(),
+               nullable=True)
+    op.drop_column('artist', 'website')
+    op.drop_column('artist', 'seeking_venue')
+    op.drop_column('artist', 'seeking_description')
     op.drop_table('show')
     # ### end Alembic commands ###
