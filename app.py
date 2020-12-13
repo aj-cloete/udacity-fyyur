@@ -56,12 +56,16 @@ app.jinja_env.filters["datetime"] = format_datetime
 # ----------------------------------------------------------------------------#
 
 
-def get_upcoming_shows():
+def _get_shows(when='upcoming'):
     now = datetime.now()
+    if when.lower() in ('upcoming', 'future'):
+        when_filter = Show.start_time > now
+    else:
+        when_filter = Show.start_time <= now
     upcoming_show = (
         Show.query.with_entities(
             Show.venue_id,
-            sa.func.coalesce(sa.func.sum(1).filter(Show.start_time > now), 0).label(
+            sa.func.coalesce(sa.func.sum(1).filter(when_filter), 0).label(
                 "upcoming_show"
             ),
         )
@@ -82,7 +86,7 @@ def index():
 
 @app.route("/venues")
 def venues():
-    upcoming = get_upcoming_shows()
+    upcoming = _get_shows('upcoming')
     city = Venue.query.with_entities(Venue.city, Venue.state).group_by("city", "state")
     venue = Venue.query.join(upcoming, isouter=True).with_entities(
         Venue.city, Venue.state, Venue.id, Venue.name, upcoming.c.upcoming_show
@@ -93,7 +97,9 @@ def venues():
             "state": c.state,
             "venues": [
                 {"id": v.id, "name": v.name, "num_upcoming_shows": v.upcoming_show}
-                for v in venue.filter(sa.and_(Venue.state == c.state, Venue.city == c.city))
+                for v in venue.filter(
+                    sa.and_(Venue.state == c.state, Venue.city == c.city)
+                )
             ],
         }
         for c in city
@@ -103,22 +109,24 @@ def venues():
 
 @app.route("/venues/search", methods=["POST"])
 def search_venues():
-    upcoming = get_upcoming_shows()
+    upcoming = _get_shows('upcoming')
     search_term = request.form.get("search_term", "")
-    search = Venue.query.join(upcoming, isouter=True).with_entities(
-        Venue.id,
-        Venue.name,
-        sa.func.coalesce(upcoming.c.upcoming_show, 0).label('upcoming_shows'),
-    ).filter(Venue.name.ilike(f"%{search_term}%")).all()
+    search = (
+        Venue.query.join(upcoming, isouter=True)
+        .with_entities(
+            Venue.id,
+            Venue.name,
+            sa.func.coalesce(upcoming.c.upcoming_show, 0).label("upcoming_shows"),
+        )
+        .filter(Venue.name.ilike(f"%{search_term}%"))
+        .all()
+    )
     response = {
         "count": len(search),
         "data": [
-            {
-                "id": sr.id,
-                "name": sr.name,
-                "num_upcoming_shows": sr.upcoming_shows
-            } for sr in search
-        ]
+            {"id": sr.id, "name": sr.name, "num_upcoming_shows": sr.upcoming_shows}
+            for sr in search
+        ],
     }
     return render_template(
         "pages/search_venues.html",
