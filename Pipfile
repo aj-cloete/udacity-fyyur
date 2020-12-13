@@ -21,6 +21,7 @@ psycopg2-binary = "*"
 pre-commit = "*"
 python-dotenv = "*"
 ipython = "*"
+jupyterlab = "*"
 
 [requires]
 python_version = "3.8"
