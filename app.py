@@ -56,9 +56,9 @@ app.jinja_env.filters["datetime"] = format_datetime
 # ----------------------------------------------------------------------------#
 
 
-def _get_shows(when='upcoming'):
+def _get_shows(when="upcoming"):
     now = datetime.now()
-    if when.lower() in ('upcoming', 'future'):
+    if when.lower() in ("upcoming", "future"):
         when_filter = Show.start_time > now
     else:
         when_filter = Show.start_time <= now
@@ -86,7 +86,7 @@ def index():
 
 @app.route("/venues")
 def venues():
-    upcoming = _get_shows('upcoming')
+    upcoming = _get_shows("upcoming")
     city = Venue.query.with_entities(Venue.city, Venue.state).group_by("city", "state")
     venue = Venue.query.join(upcoming, isouter=True).with_entities(
         Venue.city, Venue.state, Venue.id, Venue.name, upcoming.c.upcoming_show
@@ -109,7 +109,7 @@ def venues():
 
 @app.route("/venues/search", methods=["POST"])
 def search_venues():
-    upcoming = _get_shows('upcoming')
+    upcoming = _get_shows("upcoming")
     search_term = request.form.get("search_term", "")
     search = (
         Venue.query.join(upcoming, isouter=True)
