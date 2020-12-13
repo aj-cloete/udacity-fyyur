@@ -44,3 +44,8 @@ class Show(db.Model):
     venue_id = db.Column(db.Integer, db.ForeignKey("venue.id"), nullable=True)
     artist_id = db.Column(db.Integer, db.ForeignKey("artist.id"), nullable=True)
     start_time = db.Column(db.TIMESTAMP)
+    __table_args__ = (
+        db.UniqueConstraint(
+            "venue_id", "artist_id", "start_time", name="uniq_venue_artist_time"
+        ),
+    )
