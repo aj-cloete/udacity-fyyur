@@ -1,5 +1,24 @@
-from app import Artist, Show, Venue, db
-from data import *
+import os
+
+from app import Artist, Show, Venue, app, db
+from data import (
+    show_artist_data1,
+    show_artist_data2,
+    show_artist_data3,
+    show_venue_data1,
+    show_venue_data2,
+    show_venue_data3,
+    shows_data,
+)
+
+# Run migration
+os.system("flask db upgrade")
+
+# Set up app context for inserting data
+ctx = app.app_context()
+ctx.push()
+
+app.logger.info("Loading data into database")
 
 vkeys = [
     "id",
@@ -42,5 +61,11 @@ skeys = ["venue_id", "artist_id", "start_time"]
 for s in shows_data:
     shows.append(Show(**{k: s[k] for k in skeys if k in s}))
 db.session.add_all(shows)
+try:
+    db.session.commit()
+    app.logger.info("Data successfully loaded into database!")
+except Exception as e:
+    db.session.rollback()
+    app.logger.error(f"Error loading data into database!\n{e}")
 
-db.session.commit()
+ctx.pop()
