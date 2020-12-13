@@ -1,4 +1,4 @@
-"""empty message
+"""initial database setup
 
 Revision ID: 7f9d2d00a544
 Revises:

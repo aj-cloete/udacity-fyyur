@@ -1,4 +1,4 @@
-"""empty message
+"""add missing columns
 
 Revision ID: 9a1f4820f8ca
 Revises: fefb5c64245f

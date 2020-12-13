@@ -1,4 +1,4 @@
-"""empty message
+"""add show table
 
 Revision ID: fefb5c64245f
 Revises: 7f9d2d00a544
