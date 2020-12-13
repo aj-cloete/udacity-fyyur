@@ -3,22 +3,20 @@
 # ----------------------------------------------------------------------------#
 import json
 import logging
+from datetime import datetime
 from logging import FileHandler, Formatter
 
 import babel
 import dateutil.parser
-from datetime import datetime
-from models import Venue, Artist, Show, db
+import sqlalchemy as sa
 from flask import Flask, Response, flash, redirect, render_template, request, url_for
 from flask_migrate import Migrate, MigrateCommand
-from flask_script import Manager
 from flask_moment import Moment
-
-
+from flask_script import Manager
 from flask_wtf import Form
-import sqlalchemy as sa
 
 from forms import *
+from models import Artist, Show, Venue, db
 
 # ----------------------------------------------------------------------------#
 # App Config.
@@ -70,28 +68,28 @@ def index():
 @app.route("/venues")
 def venues():
     now = datetime.now()
-    upcoming_show = Show.query.with_entities(
-        Show.venue_id,
-        sa.func.coalesce(sa.func.sum(1).filter(Show.start_time > now), 0).label('upcoming_show')
-    ).group_by(Show.venue_id).subquery()
-    city = Venue.query.with_entities(Venue.city, Venue.state).group_by('city', 'state')
+    upcoming_show = (
+        Show.query.with_entities(
+            Show.venue_id,
+            sa.func.coalesce(sa.func.sum(1).filter(Show.start_time > now), 0).label(
+                "upcoming_show"
+            ),
+        )
+        .group_by(Show.venue_id)
+        .subquery()
+    )
+    city = Venue.query.with_entities(Venue.city, Venue.state).group_by("city", "state")
     venue = Venue.query.join(upcoming_show, isouter=True).with_entities(
-        Venue.city,
-        Venue.state,
-        Venue.id,
-        Venue.name,
-        upcoming_show.c.upcoming_show)
+        Venue.city, Venue.state, Venue.id, Venue.name, upcoming_show.c.upcoming_show
+    )
     data = [
         {
             "city": c.city,
             "state": c.state,
             "venues": [
-                {
-                    "id": v.id,
-                    "name": v.name,
-                    "num_upcoming_shows": v.upcoming_show
-                } for v in venue.filter(Venue.state == 'CA')
-            ]
+                {"id": v.id, "name": v.name, "num_upcoming_shows": v.upcoming_show}
+                for v in venue.filter(Venue.state == "CA")
+            ],
         }
         for c in city
     ]
@@ -103,7 +101,10 @@ def search_venues():
     # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
     # seach for Hop should return "The Musical Hop".
     # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
-    search = Venue.query.with_entities(Venue.id, Venue.name, )
+    search = Venue.query.with_entities(
+        Venue.id,
+        Venue.name,
+    )
     response = {
         "count": 1,
         "data": [
