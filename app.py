@@ -56,17 +56,7 @@ app.jinja_env.filters["datetime"] = format_datetime
 # ----------------------------------------------------------------------------#
 
 
-@app.route("/")
-def index():
-    return render_template("pages/home.html")
-
-
-#  Venues
-#  ----------------------------------------------------------------
-
-
-@app.route("/venues")
-def venues():
+def get_upcoming_shows():
     now = datetime.now()
     upcoming_show = (
         Show.query.with_entities(
@@ -78,9 +68,24 @@ def venues():
         .group_by(Show.venue_id)
         .subquery()
     )
+    return upcoming_show
+
+
+@app.route("/")
+def index():
+    return render_template("pages/home.html")
+
+
+#  Venues
+#  ----------------------------------------------------------------
+
+
+@app.route("/venues")
+def venues():
+    upcoming = get_upcoming_shows()
     city = Venue.query.with_entities(Venue.city, Venue.state).group_by("city", "state")
-    venue = Venue.query.join(upcoming_show, isouter=True).with_entities(
-        Venue.city, Venue.state, Venue.id, Venue.name, upcoming_show.c.upcoming_show
+    venue = Venue.query.join(upcoming, isouter=True).with_entities(
+        Venue.city, Venue.state, Venue.id, Venue.name, upcoming.c.upcoming_show
     )
     data = [
         {
@@ -88,7 +93,7 @@ def venues():
             "state": c.state,
             "venues": [
                 {"id": v.id, "name": v.name, "num_upcoming_shows": v.upcoming_show}
-                for v in venue.filter(Venue.state == "CA")
+                for v in venue.filter(sa.and_(Venue.state == c.state, Venue.city == c.city))
             ],
         }
         for c in city
@@ -98,22 +103,22 @@ def venues():
 
 @app.route("/venues/search", methods=["POST"])
 def search_venues():
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-    # seach for Hop should return "The Musical Hop".
-    # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
-    search = Venue.query.with_entities(
+    upcoming = get_upcoming_shows()
+    search_term = request.form.get("search_term", "")
+    search = Venue.query.join(upcoming, isouter=True).with_entities(
         Venue.id,
         Venue.name,
-    )
+        sa.func.coalesce(upcoming.c.upcoming_show, 0).label('upcoming_shows'),
+    ).filter(Venue.name.ilike(f"%{search_term}%")).all()
     response = {
-        "count": 1,
+        "count": len(search),
         "data": [
             {
-                "id": 2,
-                "name": "The Dueling Pianos Bar",
-                "num_upcoming_shows": 0,
-            }
-        ],
+                "id": sr.id,
+                "name": sr.name,
+                "num_upcoming_shows": sr.upcoming_shows
+            } for sr in search
+        ]
     }
     return render_template(
         "pages/search_venues.html",
