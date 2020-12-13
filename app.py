@@ -7,12 +7,16 @@ from logging import FileHandler, Formatter
 
 import babel
 import dateutil.parser
+from datetime import datetime
+from models import Venue, Artist, Show, db
 from flask import Flask, Response, flash, redirect, render_template, request, url_for
 from flask_migrate import Migrate, MigrateCommand
-from flask_moment import Moment
 from flask_script import Manager
-from flask_sqlalchemy import SQLAlchemy
+from flask_moment import Moment
+
+
 from flask_wtf import Form
+import sqlalchemy as sa
 
 from forms import *
 
@@ -23,57 +27,14 @@ from forms import *
 app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object("config")
-db = SQLAlchemy(app)
+
+# Database initialisation
+db.init_app(app)
 
 # Migrations
 migrate = Migrate(app, db)
 manager = Manager(app)
 manager.add_command("db", MigrateCommand)
-
-# ----------------------------------------------------------------------------#
-# Models.
-# ----------------------------------------------------------------------------#
-
-
-class Venue(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    genres = db.Column(db.ARRAY(db.String))
-    address = db.Column(db.String(120))
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    website = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
-    seeking_talent = db.Column(db.BOOLEAN)
-    seeking_description = db.Column(db.String(500))
-    image_link = db.Column(db.String(500))
-
-    shows = db.relationship("Show", backref="venue")
-
-
-class Artist(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False)
-    genres = db.Column(db.ARRAY(db.String))
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    website = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
-    seeking_venue = db.Column(db.BOOLEAN)
-    seeking_description = db.Column(db.String(500))
-    image_link = db.Column(db.String(500))
-
-    shows = db.relationship("Show", backref="artist")
-
-
-class Show(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    venue_id = db.Column(db.Integer, db.ForeignKey("venue.id"), nullable=True)
-    artist_id = db.Column(db.Integer, db.ForeignKey("artist.id"), nullable=True)
-    start_time = db.Column(db.TIMESTAMP)
 
 
 # ----------------------------------------------------------------------------#
@@ -108,36 +69,31 @@ def index():
 
 @app.route("/venues")
 def venues():
-    # TODO: replace with real venues data.
-    #       num_shows should be aggregated based on number of upcoming shows per venue.
+    now = datetime.now()
+    upcoming_show = Show.query.with_entities(
+        Show.venue_id,
+        sa.func.coalesce(sa.func.sum(1).filter(Show.start_time > now), 0).label('upcoming_show')
+    ).group_by(Show.venue_id).subquery()
+    city = Venue.query.with_entities(Venue.city, Venue.state).group_by('city', 'state')
+    venue = Venue.query.join(upcoming_show, isouter=True).with_entities(
+        Venue.city,
+        Venue.state,
+        Venue.id,
+        Venue.name,
+        upcoming_show.c.upcoming_show)
     data = [
         {
-            "city": "San Francisco",
-            "state": "CA",
+            "city": c.city,
+            "state": c.state,
             "venues": [
                 {
-                    "id": 1,
-                    "name": "The Musical Hop",
-                    "num_upcoming_shows": 0,
-                },
-                {
-                    "id": 3,
-                    "name": "Park Square Live Music & Coffee",
-                    "num_upcoming_shows": 1,
-                },
-            ],
-        },
-        {
-            "city": "New York",
-            "state": "NY",
-            "venues": [
-                {
-                    "id": 2,
-                    "name": "The Dueling Pianos Bar",
-                    "num_upcoming_shows": 0,
-                }
-            ],
-        },
+                    "id": v.id,
+                    "name": v.name,
+                    "num_upcoming_shows": v.upcoming_show
+                } for v in venue.filter(Venue.state == 'CA')
+            ]
+        }
+        for c in city
     ]
     return render_template("pages/venues.html", areas=data)
 
@@ -147,6 +103,7 @@ def search_venues():
     # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
     # seach for Hop should return "The Musical Hop".
     # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+    search = Venue.query.with_entities(Venue.id, Venue.name, )
     response = {
         "count": 1,
         "data": [
