@@ -57,6 +57,7 @@ app.jinja_env.filters["datetime"] = format_datetime
 
 
 def _get_shows(when="upcoming"):
+    """Get the [when = "upcoming"/"past"] shows from database as subquery"""
     now = datetime.now()
     if when.lower() in ("upcoming", "future"):
         when_filter = Show.start_time > now
@@ -66,13 +67,19 @@ def _get_shows(when="upcoming"):
         Show.query.with_entities(
             Show.venue_id,
             sa.func.coalesce(sa.func.sum(1).filter(when_filter), 0).label(
-                "upcoming_show"
+                f"{when}_show"
             ),
         )
         .group_by(Show.venue_id)
         .subquery()
     )
     return upcoming_show
+
+
+def _as_dict(instance):
+    """Get the db.Model instance as a python dict"""
+    instance_dict = instance.__dict__
+    return {k: instance_dict[k] for k in instance_dict if k[0] != "_"}
 
 
 @app.route("/")
@@ -139,92 +146,52 @@ def search_venues():
 def show_venue(venue_id):
     # shows the venue page with the given venue_id
     # TODO: replace with real venue data from the venues table, using venue_id
-    data1 = {
-        "id": 1,
-        "name": "The Musical Hop",
-        "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-        "address": "1015 Folsom Street",
-        "city": "San Francisco",
-        "state": "CA",
-        "phone": "123-123-1234",
-        "website": "https://www.themusicalhop.com",
-        "facebook_link": "https://www.facebook.com/TheMusicalHop",
-        "seeking_talent": True,
-        "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-        "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
-        "past_shows": [
-            {
-                "artist_id": 4,
-                "artist_name": "Guns N Petals",
-                "artist_image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
-                "start_time": "2019-05-21T21:30:00.000Z",
-            }
-        ],
-        "upcoming_shows": [],
-        "past_shows_count": 1,
-        "upcoming_shows_count": 0,
-    }
-    data2 = {
-        "id": 2,
-        "name": "The Dueling Pianos Bar",
-        "genres": ["Classical", "R&B", "Hip-Hop"],
-        "address": "335 Delancey Street",
-        "city": "New York",
-        "state": "NY",
-        "phone": "914-003-1132",
-        "website": "https://www.theduelingpianos.com",
-        "facebook_link": "https://www.facebook.com/theduelingpianos",
-        "seeking_talent": False,
-        "image_link": "https://images.unsplash.com/photo-1497032205916-ac775f0649ae?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=750&q=80",
-        "past_shows": [],
-        "upcoming_shows": [],
-        "past_shows_count": 0,
-        "upcoming_shows_count": 0,
-    }
-    data3 = {
-        "id": 3,
-        "name": "Park Square Live Music & Coffee",
-        "genres": ["Rock n Roll", "Jazz", "Classical", "Folk"],
-        "address": "34 Whiskey Moore Ave",
-        "city": "San Francisco",
-        "state": "CA",
-        "phone": "415-000-1234",
-        "website": "https://www.parksquarelivemusicandcoffee.com",
-        "facebook_link": "https://www.facebook.com/ParkSquareLiveMusicAndCoffee",
-        "seeking_talent": False,
-        "image_link": "https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80",
-        "past_shows": [
-            {
-                "artist_id": 5,
-                "artist_name": "Matt Quevedo",
-                "artist_image_link": "https://images.unsplash.com/photo-1495223153807-b916f75de8c5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80",
-                "start_time": "2019-06-15T23:00:00.000Z",
-            }
-        ],
-        "upcoming_shows": [
-            {
-                "artist_id": 6,
-                "artist_name": "The Wild Sax Band",
-                "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-                "start_time": "2035-04-01T20:00:00.000Z",
-            },
-            {
-                "artist_id": 6,
-                "artist_name": "The Wild Sax Band",
-                "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-                "start_time": "2035-04-08T20:00:00.000Z",
-            },
-            {
-                "artist_id": 6,
-                "artist_name": "The Wild Sax Band",
-                "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-                "start_time": "2035-04-15T20:00:00.000Z",
-            },
-        ],
-        "past_shows_count": 1,
-        "upcoming_shows_count": 1,
-    }
-    data = list(filter(lambda d: d["id"] == venue_id, [data1, data2, data3]))[0]
+    upcoming = _get_shows("upcoming")
+    past = _get_shows("past")
+    venue, num_upcoming, num_past = (
+        Venue.query.filter(Venue.id == venue_id)
+        .join(upcoming, isouter=True)
+        .join(past, isouter=True)
+        .add_column(upcoming.c.upcoming_show.label("upcoming_shows_count"))
+        .add_column(past.c.past_show.label("past_shows_count"))
+        .first()
+    )
+
+    data = _as_dict(venue)
+    data.update(
+        {
+            "upcoming_shows_count": num_upcoming if num_upcoming else 0,
+            "past_shows_count": num_past if num_past else 0,
+            "upcoming_shows": [
+                {
+                    "artist_id": s.artist_id,
+                    "artist_name": s.name,
+                    "artist_image_link": s.image_link,
+                    "start_time": s.start_time.strftime("%m/%d/%Y, %H:%M:%S"),
+                }
+                for s in Show.query.with_entities(
+                    Show.artist_id, Artist.name, Artist.image_link, Show.start_time
+                )
+                .filter(Show.venue_id == venue_id, Show.start_time > datetime.now())
+                .join(Artist, isouter=True)
+                .all()
+            ],
+            "past_shows": [
+                {
+                    "artist_id": s.artist_id,
+                    "artist_name": s.name,
+                    "artist_image_link": s.image_link,
+                    "start_time": s.start_time.strftime("%m/%d/%Y, %H:%M:%S"),
+                }
+                for s in Show.query.with_entities(
+                    Show.artist_id, Artist.name, Artist.image_link, Show.start_time
+                )
+                .filter(Show.venue_id == venue_id, Show.start_time <= datetime.now())
+                .join(Artist, isouter=True)
+                .all()
+            ],
+        }
+    )
     return render_template("pages/show_venue.html", venue=data)
 
 
@@ -397,19 +364,20 @@ def show_artist(artist_id):
 @app.route("/artists/<int:artist_id>/edit", methods=["GET"])
 def edit_artist(artist_id):
     form = ArtistForm()
-    artist = {
-        "id": 4,
-        "name": "Guns N Petals",
-        "genres": ["Rock n Roll"],
-        "city": "San Francisco",
-        "state": "CA",
-        "phone": "326-123-5000",
-        "website": "https://www.gunsnpetalsband.com",
-        "facebook_link": "https://www.facebook.com/GunsNPetals",
-        "seeking_venue": True,
-        "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-        "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
-    }
+    artist = Artist.query.get(artist_id)
+    # artist = {
+    #     "id": 4,
+    #     "name": "Guns N Petals",
+    #     "genres": ["Rock n Roll"],
+    #     "city": "San Francisco",
+    #     "state": "CA",
+    #     "phone": "326-123-5000",
+    #     "website": "https://www.gunsnpetalsband.com",
+    #     "facebook_link": "https://www.facebook.com/GunsNPetals",
+    #     "seeking_venue": True,
+    #     "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
+    #     "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
+    # }
     # TODO: populate form with fields from artist with ID <artist_id>
     return render_template("forms/edit_artist.html", form=form, artist=artist)
 

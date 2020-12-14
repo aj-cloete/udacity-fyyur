@@ -40,7 +40,6 @@ class Artist(db.Model):
 
 class Show(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
     venue_id = db.Column(db.Integer, db.ForeignKey("venue.id"), nullable=True)
     artist_id = db.Column(db.Integer, db.ForeignKey("artist.id"), nullable=True)
     start_time = db.Column(db.TIMESTAMP)
