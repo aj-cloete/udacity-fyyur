@@ -50,6 +50,7 @@ akeys = [
     "phone",
     "seeking_venue",
     "image_link",
+    "facebook_link",
 ]
 a1 = Artist(**{k: show_artist_data1[k] for k in akeys if k in show_artist_data1})
 a2 = Artist(**{k: show_artist_data2[k] for k in akeys if k in show_artist_data2})
