@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms import DateTimeField, SelectField, SelectMultipleField, StringField
-from wtforms.validators import URL, AnyOf, DataRequired
+from wtforms.validators import URL, AnyOf, DataRequired  # noqa
 
 
-class ShowForm(Form):
+class ShowForm(FlaskForm):
     artist_id = StringField("artist_id")
     venue_id = StringField("venue_id")
     start_time = DateTimeField(
@@ -13,7 +13,7 @@ class ShowForm(Form):
     )
 
 
-class VenueForm(Form):
+class VenueForm(FlaskForm):
     name = StringField("name", validators=[DataRequired()])
     city = StringField("city", validators=[DataRequired()])
     state = SelectField(
@@ -105,7 +105,7 @@ class VenueForm(Form):
     facebook_link = StringField("facebook_link", validators=[URL()])
 
 
-class ArtistForm(Form):
+class ArtistForm(FlaskForm):
     name = StringField("name", validators=[DataRequired()])
     city = StringField("city", validators=[DataRequired()])
     state = SelectField(
