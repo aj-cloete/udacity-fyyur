@@ -1,8 +1,8 @@
 """update models
 
-Revision ID: 115fca932a49
+Revision ID: c3d3042e6719
 Revises: 7f9d2d00a544
-Create Date: 2020-12-14 01:36:06.238801
+Create Date: 2020-12-15 21:27:39.347251
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '115fca932a49'
+revision = 'c3d3042e6719'
 down_revision = '7f9d2d00a544'
 branch_labels = None
 depends_on = None
@@ -34,7 +34,7 @@ def upgrade():
     op.alter_column('artist', 'name',
                existing_type=sa.VARCHAR(),
                nullable=False)
-    op.add_column('venue', sa.Column('genres', sa.ARRAY(sa.String()), nullable=True))
+    op.add_column('venue', sa.Column('genres', sa.String(length=500), nullable=True))
     op.add_column('venue', sa.Column('seeking_description', sa.String(length=500), nullable=True))
     op.add_column('venue', sa.Column('seeking_talent', sa.BOOLEAN(), nullable=True))
     op.add_column('venue', sa.Column('website', sa.String(length=500), nullable=True))
