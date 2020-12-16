@@ -166,8 +166,8 @@ class ArtistForm(FlaskForm):
         ],
     )
     phone = StringField(
-        # TODO implement validation logic for state
-        "phone"
+        "phone",
+        validators=[DataRequired()],
     )
     image_link = StringField("image_link")
     genres = SelectMultipleField(
@@ -203,4 +203,9 @@ class ArtistForm(FlaskForm):
     )
 
 
-# TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM
+class NewArtistForm(ArtistForm):
+    pass
+
+
+class NewShowForm(ShowForm):
+    pass
