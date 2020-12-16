@@ -49,6 +49,8 @@ akeys = [
     "state",
     "phone",
     "seeking_venue",
+    "seeking_description",
+    "website",
     "image_link",
     "facebook_link",
 ]
