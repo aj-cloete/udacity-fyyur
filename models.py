@@ -6,7 +6,7 @@ db = SQLAlchemy()
 
 
 class Venue(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String)
     genres = db.Column(db.String(500))
     address = db.Column(db.String(120))
@@ -23,7 +23,7 @@ class Venue(db.Model):
 
 
 class Artist(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(120), nullable=False)
     genres = db.Column(db.String(500))
     city = db.Column(db.String(120))
@@ -39,7 +39,7 @@ class Artist(db.Model):
 
 
 class Show(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     venue_id = db.Column(db.Integer, db.ForeignKey("venue.id"), nullable=True)
     artist_id = db.Column(db.Integer, db.ForeignKey("artist.id"), nullable=True)
     start_time = db.Column(db.TIMESTAMP)
