@@ -7,7 +7,6 @@ from logging import FileHandler, Formatter
 
 import babel
 import dateutil.parser
-import sqlalchemy as sa
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_migrate import Migrate, MigrateCommand
 from flask_moment import Moment
@@ -179,7 +178,6 @@ def create_venue_submission():
     form = VenueForm()
     venue = Venue()
     form.populate_obj(venue)
-    venue.id = Venue.query.with_entities(sa.func.max(Venue.id)).first()[0] + 1
     try:
         db.session.add(venue)
         db.session.commit()
