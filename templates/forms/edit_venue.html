@@ -33,8 +33,20 @@
         {{ form.genres(class_ = 'form-control', placeholder=venue.genres, autofocus = false) }}
       </div>
       <div class="form-group">
-          <label for="genres">Facebook Link</label>
+          <label for="website">Website</label>
+          {{ form.website(class_ = 'form-control', placeholder=venue.website, autofocus = false) }}
+        </div>
+      <div class="form-group">
+          <label for="facebook_link">Facebook Link</label>
           {{ form.facebook_link(class_ = 'form-control', placeholder=venue.facebook_link, autofocus = false) }}
+        </div>
+      <div class="form-group">
+          <label for="seeking_talent">Seeking Talent</label>
+          {{ form.seeking_talent(class_ = 'form-control', placeholder=venue.seeking_talent, autofocus = false) }}
+        </div>
+      <div class="form-group">
+          <label for="seeking_description">Seeking Description</label>
+          {{ form.seeking_description(class_ = 'form-control', placeholder=venue.seeking_description, autofocus = false) }}
         </div>
       <input type="submit" value="Edit Venue" class="btn btn-primary btn-lg btn-block">
     </form>
